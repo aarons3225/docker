@@ -1,0 +1,42 @@
+version: '3'
+services:
+  makemkv:
+    image: jlesage/makemkv
+    ports:
+      - "5800:5800"
+    environment:
+      - PUID=1000
+      - GUID=1000
+      - UMASK=0022
+      - LANG=en_US.UTF-8
+      - TZ=America/Phoenix
+      - KEEP_APP_RUNNING=1
+      - DARK_MODE=1
+      - MAKEMKV_KEY=BETA
+    volumes:
+      - "/docker/appdata/makemkv:/config:rw"
+      - "/home/user:/storage:ro"
+      - "/home/user/MakeMKV/output:/output:rw"
+    devices:
+      - "/dev/sr0:/dev/sr0"
+      - "/dev/sg2:/dev/sg2"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.makemkv.entrypoints=http"
+      - "traefik.http.routers.makemkv.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.makemkv.-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.makemkv.middlewares=makemkv.-https-redirect"
+      - "traefik.http.routers.makemkv-secure.entrypoints=https"
+      - "traefik.http.routers.makemkv-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.makemkv-secure.tls=true"
+      - "traefik.http.routers.makemkv-secure.service=makemkv"
+      - "traefik.http.services.makemkv.loadbalancer.server.port=5800"
+      - "traefik.docker.network=proxy"
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - proxy
+networks: 
+  proxy:
+    external: true
+    name: proxy

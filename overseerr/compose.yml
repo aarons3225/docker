@@ -1,0 +1,39 @@
+---
+version: '3'
+
+services:
+  overseerr:
+    image: sctx/overseerr:latest
+    container_name: overseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=America/Phoenix
+      - PORT=5055 #optional
+    ports:
+      - 5055:5055
+    volumes:
+      - /home/aaron/docker/overseerr:/app/config
+      - /home/aaron/pictures:/images
+      - /home/aaron/docker/traefik/data/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.overseerr.entrypoints=http"
+      - "traefik.http.routers.overseerr.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.overseerr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.overseerr.middlewares=overseerr-https-redirect"
+      - "traefik.http.routers.overseerr-secure.entrypoints=https"
+      - "traefik.http.routers.overseerr-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.overseerr-secure.tls=true"
+      - "traefik.http.routers.overseerr-secure.service=overseerr"
+      - "traefik.http.services.overseerr.loadbalancer.server.port=5055"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.overseerr-secure.middlewares=authelia@docker"
+    restart: unless-stopped
+    networks:
+      - proxy
+    env_file: .env
+networks: 
+  proxy:
+    external: true
+    name: proxy

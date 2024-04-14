@@ -1,0 +1,82 @@
+version: "3.0"
+services:
+  little-link:
+    image: ghcr.io/techno-tim/littlelink-server:latest
+    # dockerhub is also supported timothystewart6/littlelink-server
+    #image: timothystewart6/littlelink-server:latest
+    container_name: littlelink-server
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - META_TITLE=Aaron Sabol
+      - META_DESCRIPTION=Aaron Sabol Link page
+      - META_AUTHOR=Aaron Sabol
+      - META_KEYWORDS=HomeLab, Security
+      - LANG=en
+      - META_INDEX_STATUS=all
+      - THEME=Dark
+      - FAVICON_URL=https://github.com/aarons3225/aarons3225.github.io/blob/main/assets/img/favicons/favicon.ico
+      - AVATAR_URL=https://aarons3225.github.io/assets/img/avatar/avatar.jpeg
+      - AVATAR_2X_URL=https://aarons3225.github.io/assets/img/avatar/avatar.jpeg
+      - AVATAR_ALT=Aaron Sabol Profile Pic
+      - NAME=Aaron Sabol
+      - BIO=Hey! Just a place where you can connect with me!
+      - FOOTER=Thanks for stopping by!
+      - CUSTOM_BUTTON_TEXT=Resume for Security
+      - CUSTOM_BUTTON_URL=$RESUME_URL
+      - CUSTOM_BUTTON_COLOR=#63D23F,#63D23F
+      - CUSTOM_BUTTON_TEXT_COLOR=#ffffff,#ffffff
+      - CUSTOM_BUTTON_ALT_TEXT=View and Download my Security Resume
+      - CUSTOM_BUTTON_NAME=RESUME
+      - CUSTOM_BUTTON_ICON=fas file-alt,fas fa-id-badge
+      - GITHUB=https://github.com/aarons3225
+      - TWITTER=https://twitter.com/aaronsabol20
+      - INSTAGRAM=https://www.instagram.com/aaronsabol/
+      - DISCORD=https://discord.gg/pFzxQqWdTX
+      - FACEBOOK=https://www.facebook.com/aaron.sabol/
+      - FACEBOOK_MESSENGER=https://facebook.com
+      - LINKED_IN=https://www.linkedin.com/in/aaronsabol/
+      - REDDIT=https://www.reddit.com/user/odin1actual/
+      - PINTEREST=https://www.pinterest.com/aaron_sabol
+      - EMAIL=$EMAIL
+      - EMAIL_TEXT=Email Me!
+      - EMAIL_ALT=$EMAIL_ALT
+      - EMAIL_ALT_TEXT=Email me!
+      - BUTTON_ORDER=RESUME,LINKED_IN,GITHUB,DISCORD,REDDIT,FACEBOOK,FACEBOOK_MESSENGER,PINTEREST,INSTAGRAM,TWITTER
+      - OG_SITE_NAME=Odin Actual (OG)
+      - OG_TITLE=Aaron Sabol (OG)
+      - OG_DESCRIPTION=Aaron Sabol's Link page (OG)
+      - OG_URL=$OG_URL
+      - OG_IMAGE=https://lh3.googleusercontent.com/a/ACg8ocLwL782aw3JAzN71cgfZf63NkXp5vLqN797Aa4FKIhRTNw=s576-c-no
+      - OG_IMAGE_WIDTH=400
+      - OG_IMAGE_HEIGHT=400
+      - TWITTER_CARD=summary_large_image
+      - TWITTER_IMAGE=https://twitter.com/aaronsabol20/photo
+      - TWITTER_SITE=@aaronsabol20
+      - TWITTER_CREATOR=@aaronsabol20
+      - SHARE=https://aarons3225.github.io
+    ports:
+      - 3225:3000
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.littlelink-server.entrypoints=http
+      - traefik.http.routers.littlelink-server.rule=Host(`$LINKS_URL`)
+      - traefik.http.middlewares.littlelink-server-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.littlelink-server.middlewares=littlelink-server-https-redirect
+      - traefik.http.routers.littlelink-server-secure.entrypoints=https
+      - traefik.http.routers.littlelink-server-secure.rule=Host(`$LINKS_URL`)
+      - traefik.http.routers.littlelink-server-secure.tls=true
+      - traefik.http.routers.littlelink-server-secure.service=littlelink-server
+      - traefik.http.services.littlelink-server.loadbalancer.server.port=3225
+      - traefik.docker.network=proxy
+    restart: unless-stopped
+    networks:
+      - proxy
+    env_file: .env
+networks:
+  proxy:
+    external: true
+    name: proxy

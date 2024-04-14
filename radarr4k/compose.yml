@@ -1,0 +1,39 @@
+version: "3.7"
+services:
+  radarr:
+    container_name: radarr4k
+    image: ghcr.io/hotio/radarr:latest
+    ports:
+      - 7874:7874
+    environment:
+      - PUID=1000
+      - PGID=568
+      - UMASK=002
+      - TZ=America/Phoenix
+    volumes:
+      - /home/aaron/docker/radarr4k:/config
+      - /mnt/media/:/Media
+      - /mnt/downloads:/Downloads
+      - /home/aaron/docker/traefik/data/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr4k.entrypoints=http"
+      - "traefik.http.routers.radarr4k.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.radarr4k-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.radarr4k.middlewares=radarr4k-https-redirect"
+      - "traefik.http.routers.radarr4k-secure.entrypoints=https"
+      - "traefik.http.routers.radarr4k-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.radarr4k-secure.tls=true"
+      - "traefik.http.routers.radarr4k-secure.service=radarr4k"
+      - "traefik.http.services.radarr4k.loadbalancer.server.port=7874"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.radarr4k-secure.middlewares=authelia@docker"
+    restart: unless-stopped
+    networks:
+      - proxy
+    env_file: .env
+networks: 
+  proxy:
+    external: true
+    name: proxy

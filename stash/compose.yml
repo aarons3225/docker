@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  stash:
+    container_name: stash
+    image: ghcr.io/hotio/stash
+    ports:
+      - "9999:9999"
+    environment:
+      - PUID=1000
+      - PGID=568
+      - UMASK=002
+      - TZ=America/Phoenix
+    volumes:
+      - /home/aaron/docker/stash:/config
+      - /mnt/media:/Media
+    restart: unless-stopped

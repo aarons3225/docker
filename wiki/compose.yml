@@ -1,0 +1,19 @@
+version: "3"
+services:
+  wiki:
+    image: ghcr.io/requarks/wiki:2
+    container_name: wiki.js
+    environment:
+      DB_TYPE: postgres
+      DB_HOST: $DB_HOST
+      DB_PORT: 5234
+      DB_USER: $DB_USER
+      DB_PASS: $DB_PASS
+      DB_NAME: wiki
+    volumes:
+      - /home/aaron/docker/postgresql/wiki:/var/lib/postgresql/data
+      - /home/aaron/wiki:/home/aaron/wiki
+    restart: unless-stopped
+    ports:
+      - 1990:3000
+networks: {}

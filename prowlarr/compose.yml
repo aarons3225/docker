@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  prowlarr:
+    container_name: prowlarr
+    image: ghcr.io/hotio/prowlarr:latest
+    ports:
+      - "9696:9696"
+    environment:
+      - PUID=1000
+      - PGID=568
+      - UMASK=002
+      - TZ=America/Phoenix
+    volumes:
+      - /home/aaron/docker/prowlarr:/config
+      - /home/aaron/docker/traefik/data/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prowlarr.entrypoints=http"
+      - "traefik.http.routers.prowlarr.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.prowlarr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.prowlarr.middlewares=prowlarr-https-redirect"
+      - "traefik.http.routers.prowlarr-secure.entrypoints=https"
+      - "traefik.http.routers.prowlarr-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.prowlarr-secure.tls=true"
+      - "traefik.http.routers.prowlarr-secure.service=prowlarr"
+      - "traefik.http.services.prowlarr.loadbalancer.server.port=9696"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.prowlarr-secure.middlewares=authelia@docker"
+    restart: unless-stopped
+    networks:
+      - proxy
+    env_file: .env
+networks: 
+  proxy:
+    external: true
+    name: proxy

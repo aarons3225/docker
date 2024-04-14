@@ -1,0 +1,30 @@
+version: "3.3"
+services:
+  it-tools:
+    container_name: it-tools
+    restart: unless-stopped
+    image: corentinth/it-tools:latest
+    ports:
+      - 85:85
+    volumes:
+      - /home/aaron/docker/traefik/data/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.it-tools.entrypoints=http
+      - traefik.http.routers.it-tools.rule=Host(`$URL`)
+      - traefik.http.middlewares.it-tools-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.it-tools.middlewares=it-tools-https-redirect
+      - traefik.http.routers.it-tools-secure.entrypoints=https
+      - traefik.http.routers.it-tools-secure.rule=Host(`$URL`)
+      - traefik.http.routers.it-tools-secure.tls=true
+      - traefik.http.routers.it-tools-secure.service=it-tools
+      - traefik.http.services.it-tools.loadbalancer.server.port=85
+      - traefik.docker.network=proxy
+      - traefik.http.routers.it-tools-secure.middlewares=authelia@docker
+    networks:
+      - proxy
+    env_file: .env
+networks:
+  proxy:
+    external: true

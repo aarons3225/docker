@@ -1,0 +1,40 @@
+version: "3.7"
+
+services:
+  lidarr:
+    container_name: lidarr
+    image: ghcr.io/hotio/lidarr:latest
+    ports:
+      - "8686:8686"
+    environment:
+      - PUID=1000
+      - PGID=568
+      - UMASK=002
+      - TZ=America/Phoenix
+    volumes:
+      - /home/aaron/docker/lidarr:/config
+      - /mnt/media/:/Media
+      - /mnt/downloads:/Downloads
+      - /home/aaron/docker/traefik/data/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lidarr.entrypoints=http"
+      - "traefik.http.routers.lidarr.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.lidarr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.lidarr.middlewares=lidarr-https-redirect"
+      - "traefik.http.routers.lidarr-secure.entrypoints=https"
+      - "traefik.http.routers.lidarr-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.lidarr-secure.tls=true"
+      - "traefik.http.routers.lidarr-secure.service=lidarr"
+      - "traefik.http.services.lidarr.loadbalancer.server.port=8686"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.lidarr-secure.middlewares=authelia@docker"
+    restart: unless-stopped
+    networks:
+      - proxy
+    env_file: .env
+networks: 
+  proxy:
+    external: true
+    name: proxy

@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: resume-db
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      start_period: 15s
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    environment:
+      - POSTGRES_DB=$POSTGRES_DB
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+    networks:
+      - proxy
+    env_file: .env
+
+  server:
+    image: amruthpillai/reactive-resume:server-latest
+    container_name: resume-server
+    restart: always
+    ports:
+      - 3100:3100
+    depends_on:
+      - postgres
+    environment:
+      - PUBLIC_URL=$PUBLIC_URL
+      - PUBLIC_SERVER_URL=$PUBLIC_SERVER_URL
+      - POSTGRES_DB=$POSTGRES_DB
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - SECRET_KEY=$SECRET_KEY
+      - POSTGRES_HOST=$POSTGRES_HOST
+      - POSTGRES_PORT=5432
+      - JWT_SECRET=$JWT_SECRET
+      - JWT_EXPIRY_TIME=604800
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.resume-server.entrypoints=http"
+      - "traefik.http.routers.resume-server.rule=Host(`$SERVER_URL`)"
+      - "traefik.http.middlewares.resume-server-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.resume-server.middlewares=resume-server-https-redirect"
+      - "traefik.http.routers.resume-server-secure.entrypoints=https"
+      - "traefik.http.routers.resume-server-secure.rule=Host(`SERVER_URL`)"
+      - "traefik.http.routers.resume-server-secure.tls=true"
+      - "traefik.http.routers.resume-server-secure.service=resume-server"
+      - "traefik.http.services.resume-server.loadbalancer.server.port=3100"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+    env_file: .env
+      
+  client:
+    image: amruthpillai/reactive-resume:client-latest
+    container_name: resume-client
+    restart: always
+    ports:
+      - 3252:3000
+    depends_on:
+      - server
+    environment:
+      - PUBLIC_URL=$PUBLIC_URL
+      - PUBLIC_SERVER_URL=$PUBLIC_SERVER_URL
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.resume-client.entrypoints=http"
+      - "traefik.http.routers.resume-client.rule=Host(`$CLIENT_URL`)"
+      - "traefik.http.middlewares.resume-client-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.resume-client.middlewares=resume-client-https-redirect"
+      - "traefik.http.routers.resume-client-secure.entrypoints=https"
+      - "traefik.http.routers.resume-client-secure.rule=Host(`$CLIENT_URL`)"
+      - "traefik.http.routers.resume-client-secure.tls=true"
+      - "traefik.http.routers.resume-client-secure.service=resume-client"
+      - "traefik.http.services.resume-client.loadbalancer.server.port=3525"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+    env_file: .env
+volumes:
+  pgdata:
+networks: 
+  proxy:
+    external: true
+    name: proxy

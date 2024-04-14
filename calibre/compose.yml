@@ -1,0 +1,21 @@
+version: "2"
+services:
+  calibre:
+    image: linuxserver/calibre:latest
+    container_name: calibre
+    restart: unless-stopped
+    environment:
+      - UMASK_SET=002 # For umask setting of Calibre, default if left unset is 022.
+      - TZ=America/Phoenix # Specify a timezone to use e.g. Europe/London.
+      - PUID=1000 # UID of user to take ownership of application/files
+      - PGID=568 # GID of user to take ownership of application/files
+      - GUAC_USER=$GUAC_USER # Username for the calibre desktop gui. (Optional)
+      - GUAC_PASS=$GUAC_PASS # Password's md5 hash for the calibre desktop gui. (Optional)
+    volumes:
+      - ./config:/config # Where calibre should store its database and library
+      - /mnt/media/:/media # Where calibre should find content
+    ports:
+      - 4051:8081/tcp # Calibre webserver gui.
+      - 4050:8080/tcp # Calibre desktop gui.
+    env_file: .env
+networks: {}

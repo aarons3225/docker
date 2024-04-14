@@ -1,0 +1,41 @@
+version: "3.4"
+services:
+  tdarr:
+    container_name: tdarr
+    image: ghcr.io/haveagitgat/tdarr:latest
+    restart: unless-stopped
+    network_mode: bridge
+    env_file: /home/aaron/docker/tdarr/.env
+    ports:
+      - 8265:8265 # webUI port
+      - 8266:8266 # server port
+    environment:
+      - TZ=America/Phoenix
+      - PUID=1000
+      - PGID=1000
+      - UMASK_SET=0022
+      - serverIP=$SERVER_IP
+      - serverPort=8266
+      - webUIPort=8265
+      - internalNode=true
+      - inContainer=true
+      - ffmpegVersion=6
+      - nodeName=Zima
+ #     - NVIDIA_DRIVER_CAPABILITIES=all
+ #     - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - /home/aaron/docker/tdarr/server:/app/server
+      - /home/aaron/docker/tdarr/configs:/app/configs
+      - /home/aaron/docker/tdarr/logs:/app/logs
+      - /mnt/media:/media
+      - /transcode_cache:/temp
+
+    devices:
+      - /dev/dri:/dev/dri
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]

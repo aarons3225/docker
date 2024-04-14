@@ -1,0 +1,43 @@
+---
+version: "3"
+services:
+  lazylibrarian:
+    image: linuxserver/lazylibrarian:latest
+    container_name: lazylibrarian
+    environment:
+      - TZ=America/Phoenix
+      - PUID=1000
+      - GUID=568
+      - HOME=/home/aaron
+      - TERM=xterm
+      - GLIBC_VERSION=2.26-r0
+      - CALIBRE_CONFIG_DIRECTORY=/home/aaron/docker/calibre/config/
+      - CALIBRE_TEMP_DIR=/home/aaron/docker/calibre/tmp/
+      - CALIBRE_CACHE_DIRECTORY=/home/aaron/docker/calibre/cache/
+    volumes:
+      - /home/aaron/docker/lazylibrarian:/config #Config
+      - /home/aaron/docker/calibre:/calibreconfig #Calibre Config
+      - /mnt/media:/Library #Library
+      - /mnt/downloads:/Downloads #Downloads
+    ports:
+      - 5299:5299/tcp #WebUI
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lazylibrarian.entrypoints=http"
+      - "traefik.http.routers.lazylibrarian.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.lazylibrarian-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.lazylibrarian.middlewares=lazylibrarian-https-redirect"
+      - "traefik.http.routers.lazylibrarian-secure.entrypoints=https"
+      - "traefik.http.routers.lazylibrarian-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.lazylibrarian-secure.tls=true"
+      - "traefik.http.routers.lazylibrarian-secure.service=lazylibrarian"
+      - "traefik.http.services.lazylibrarian.loadbalancer.server.port=5299"
+      - "traefik.docker.network=proxy"
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - proxy
+networks: 
+  proxy:
+    external: true
+    name: proxy

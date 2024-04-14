@@ -1,0 +1,21 @@
+version: "3"
+services:
+  plex:
+    image: plexinc/pms-docker
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Phoenix
+      - VERSION=docker
+      - PLEX_CLAIM=$PLEX_CLAIM
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ./config:/config
+      - /dev/shm/:/transcode
+      - /mnt/media:/Media
+    devices:
+      - /dev/dri:/dev/dri
+    env_file: .env
+    restart: unless-stopped

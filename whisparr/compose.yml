@@ -1,0 +1,39 @@
+version: "3.7"
+
+services:
+  whisparr:
+    container_name: whisparr
+    image: ghcr.io/hotio/whisparr:latest
+    ports:
+      - "6969:6969"
+    environment:
+      - PUID=1000
+      - PGID=568
+      - UMASK=002
+      - TZ=America/Phoenix
+    volumes:
+      - /home/aaron/docker/whisparr:/config
+      - /mnt/media:/Media
+      - /mnt/downloads:/Downloads
+      - /home/aaron/docker/traefik/data/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whisparr.entrypoints=http"
+      - "traefik.http.routers.whisparr.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.whisparr-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.whisparr.middlewares=whisparr-https-redirect"
+      - "traefik.http.routers.whisparr-secure.entrypoints=https"
+      - "traefik.http.routers.whisparr-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.whisparr-secure.tls=true"
+      - "traefik.http.routers.whisparr-secure.service=whisparr"
+      - "traefik.http.services.whisparr.loadbalancer.server.port=6969"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.whisparr-secure.middlewares=authelia@docker"
+    restart: unless-stopped
+    networks:
+      - proxy
+networks: 
+  proxy:
+    external: true
+    name: proxy

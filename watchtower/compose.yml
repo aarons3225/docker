@@ -1,0 +1,16 @@
+version: "3"
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    ports:
+      - 5080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - TZ=America/Phoenix
+    restart: unless-stopped
+networks:
+  utilities:
+    external: true

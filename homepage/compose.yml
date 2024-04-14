@@ -1,0 +1,36 @@
+version: "3.9"
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    ports:
+      - 3000:3000
+    env_file: .env # use .env
+    volumes:
+      - /home/aaron/docker/homepage:/app/config # Make sure your local config directory exists
+      - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations, see alternative methods
+      - /home/aaron/docker/homepage/images:/images # For images
+      - /dev/md0:/dev/md0 # For system disk
+      - /mnt/media:/mnt/media # For Media disk
+    environment:
+      PUID: $PUID # read them from .env
+      PGID: $GUID # read them from .env
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.homepage.entrypoints=http
+      - traefik.http.routers.homepage.rule=Host(`$URL`)
+      - traefik.http.middlewares.homepage-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.homepage.middlewares=homepage-https-redirect
+      - traefik.http.routers.homepage-secure.entrypoints=https
+      - traefik.http.routers.homepage-secure.rule=Host(`$URL`)
+      - traefik.http.routers.homepage-secure.tls=true
+      - traefik.http.routers.homepage-secure.service=homepage
+      - traefik.http.services.homepage.loadbalancer.server.port=3000
+      - traefik.docker.network=proxy
+    restart: unless-stopped
+    networks:
+      - proxy
+networks:
+  proxy:
+    external: true
+    name: proxy

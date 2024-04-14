@@ -1,0 +1,40 @@
+version: "3.4"
+services:
+  app:
+    container_name: lubelogger
+    image: ghcr.io/hargata/lubelogger:latest
+    build: .
+    restart: unless-stopped
+    # volumes used to keep data persistent
+    volumes:
+      - ./config:/App/config
+      - ./data:/App/data
+      - ./translations:/App/wwwroot/translations
+      - ./documents:/App/wwwroot/documents
+      - ./images:/App/wwwroot/images
+      - ./temp:/App/wwwroot/temp
+      - ./log:/App/log
+      - ./keys:/root/.aspnet/DataProtection-Keys
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # expose port and/or use serving via traefik
+    ports:
+      - 8888:8080
+    env_file:
+      - .env
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.lubelogger.entrypoints=http
+      - traefik.http.routers.lubelogger.rule=Host(`$URL`)
+      - traefik.http.middlewares.lubelogger-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.lubelogger.middlewares=lubelogger-https-redirect
+      - traefik.http.routers.lubelogger-secure.entrypoints=https
+      - traefik.http.routers.lubelogger-secure.rule=Host(`$URL`)
+      - traefik.http.routers.lubelogger-secure.tls=true
+      - traefik.http.routers.lubelogger-secure.service=lubelogger
+      - traefik.http.services.lubelogger.loadbalancer.server.port=8888
+      - traefik.docker.network=proxy
+      - traefik.http.routers.lubelogger-secure.middlewares=authelia@docker
+networks:
+  proxy:
+    external: true
+    name: proxy

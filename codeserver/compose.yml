@@ -1,0 +1,23 @@
+version: "2"
+services:
+  code-server:
+    image: linuxserver/code-server:latest
+    container_name: code-server
+    restart: unless-stopped
+    environment:
+      - TZ=America/Phoenix # Specify a timezone to use EG Europe/London
+      - SUDO_PASSWORD=$SUDO_PASSWORD # If this optional variable is set, user will have sudo access in the code-server terminal with the specified password.
+      - PUID=1000 # for UserID
+      - PGID=1000,568 # for GroupID
+      - PASSWORD=$PASSWORD # Optional web gui password, if not provided, there will be no auth.
+    volumes:
+      - /home/aaron/docker/codeserver:/config # Contains all relevant configuration files.
+      - /home:/home #for home folder
+      - /mnt:/mnt #for mounted folders
+      - /dev:/dev #for dev files
+      - /var:/var #for var files
+      - /opt:/opt #for opt files
+    ports:
+      - 8443:8443/tcp # Web UI
+    env_file: .env
+networks: {}

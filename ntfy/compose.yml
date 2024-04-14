@@ -1,0 +1,37 @@
+version: "3"
+services:
+  server:
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "1"
+    image: binwiederhier/ntfy
+    command: serve
+    environment:
+      - TZ=America/Phoenix
+    user: 1000:568
+    volumes:
+      - /home/aaron/docker/ntfy/cache:/var/cache/ntfy
+      - /home/aaron/docker/ntfy/config:/etc/ntfy
+    ports:
+      - 250:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ntfy.entrypoints=http"
+      - "traefik.http.routers.ntfy.rule=Host(`$URL`)"
+      - "traefik.http.middlewares.ntfy.-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.ntfy.middlewares=ntfy.-https-redirect"
+      - "traefik.http.routers.ntfy-secure.entrypoints=https"
+      - "traefik.http.routers.ntfy-secure.rule=Host(`$URL`)"
+      - "traefik.http.routers.ntfy-secure.tls=true"
+      - "traefik.http.routers.ntfy-secure.service=ntfy"
+      - "traefik.http.services.ntfy.loadbalancer.server.port=250"
+      - "traefik.docker.network=proxy"
+    restart: unless-stopped
+    env_file: .env
+networks: 
+  proxy:
+    external: true
+    name: proxy

@@ -1,0 +1,30 @@
+version: '3.9'
+services:
+    kavita:
+        image: jvmilazz0/kavita:latest
+        volumes:
+            - /home/aaron/docker/kavita/config:/kavita/config
+            - /home/aaron/docker/calibre/'Calibre Library':/calibredb
+            - /mnt/media/books:/books
+        ports:
+            - "5000:5000"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.kavita.entrypoints=http"
+            - "traefik.http.routers.kavita.rule=Host(`$URL`)"
+            - "traefik.http.middlewares.kavita-https-redirect.redirectscheme.scheme=https"
+            - "traefik.http.routers.kavita.middlewares=kavita-https-redirect"
+            - "traefik.http.routers.kavita-secure.entrypoints=https"
+            - "traefik.http.routers.kavita-secure.rule=Host(`$URL`)"
+            - "traefik.http.routers.kavita-secure.tls=true"
+            - "traefik.http.routers.kavita-secure.service=kavita"
+            - "traefik.http.services.kavita.loadbalancer.server.port=5000"
+            - "traefik.docker.network=proxy"
+        restart: unless-stopped
+        env_file: .env
+        networks:
+            - proxy
+networks: 
+    proxy:
+        external: true
+        name: proxy

@@ -1,0 +1,11 @@
+version: "3.5"
+services:
+  wizarr:
+    container_name: wizarr
+    image: ghcr.io/wizarrrr/wizarr:latest
+    ports:
+      - 5690:5690
+    volumes:
+      - ./wizarr/database:/data/database
+    restart: unless-stopped
+networks: {}

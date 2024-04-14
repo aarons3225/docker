@@ -1,0 +1,26 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=postgresql
+      - POSTGRES_USER=$USER
+      - POSTGRES_PASSWORD=$PASSWORD
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - WIKI=/var/lib/postgresql/data/wiki
+    volumes:
+      - /home/aaron/docker/postgres:/var/lib/postgresql/data
+    ports:
+      - 5234:5432
+    env_file: .env
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - 6500:8080

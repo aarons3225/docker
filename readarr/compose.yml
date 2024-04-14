@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+  readarr:
+    container_name: readarr
+    image: ghcr.io/hotio/readarr:latest
+    ports:
+      - 8787:8787
+    environment:
+      - PUID=1000
+      - PGID=568
+      - UMASK=002
+      - TZ=America/Phoenix
+    volumes:
+      - /home/aaron/docker/readarr:/config
+      - /home/aaron/docker/calibre:/Calibre
+      - /mnt/media:/Library
+      - /mnt/downloads:/downloads
+      - /home/aaron/docker/traefik/data/acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.readarr.entrypoints=http
+      - traefik.http.routers.readarr.rule=Host(`$URL`)
+      - traefik.http.middlewares.readarr-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.readarr.middlewares=readarr-https-redirect
+      - traefik.http.routers.readarr-secure.entrypoints=https
+      - traefik.http.routers.readarr-secure.rule=Host(`$URL`)
+      - traefik.http.routers.readarr-secure.tls=true
+      - traefik.http.routers.readarr-secure.service=readarr
+      - traefik.http.services.readarr.loadbalancer.server.port=8787
+      - traefik.docker.network=proxy
+      - traefik.http.routers.readarr-secure.middlewares=authelia@docker
+    restart: unless-stopped
+    networks:
+      - proxy
+    env_file: .env
+networks:
+  proxy:
+    external: true
+    name: proxy
