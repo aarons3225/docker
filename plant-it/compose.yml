@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     volumes:
       - "./upload-dir:/upload-dir"
-      - "certs:/certificates"
+      - "./certs:/certificates"
     ports:
       - "8080:8080"
 
@@ -33,7 +33,7 @@ services:
     ports:
       - "3285:3000"
     volumes:
-      - "certs:/certificates"
+      - "./certs:/certificates"
 volumes:
   certs:
     driver: local
