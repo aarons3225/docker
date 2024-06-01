@@ -1,0 +1,12 @@
+services:
+    trackerautologin:
+        container_name: trackerautologin
+        image: mastiffmushroom/trackerautologin
+        environment:
+          - PUID=1000
+          - PGID=1000  
+          - UMASK=002 #PGID PUID UMASK should be updated to match your env
+          - TZ=America/Phoenix #update to your timezone
+        volumes:
+            - ./config:/app/config/ #specify your config file location
+        restart: unless-stopped
