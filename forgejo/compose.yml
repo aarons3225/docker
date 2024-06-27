@@ -1,10 +1,6 @@
-version: "3"
-networks:
-  proxy:
-    external: true
 services:
   server:
-    image: codeberg.org/forgejo/forgejo:1.21
+    image: codeberg.org/forgejo/forgejo:7
     container_name: forgejo
     environment:
       - USER_UID=1000
@@ -18,7 +14,7 @@ services:
     networks:
       - proxy
     volumes:
-      - ./forgejo:/data
+      - ./data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - /home/aaron/docker/postgresql/forgejo:/var/lib/postgresql/data
@@ -38,3 +34,6 @@ services:
       - traefik.http.services.forgejo.loadbalancer.server.port=3865
       - traefik.docker.network=proxy
     env_file: .env
+networks:
+  proxy:
+    external: true

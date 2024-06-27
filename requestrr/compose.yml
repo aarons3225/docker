@@ -1,8 +1,7 @@
 version: "3.4"
 services:
   requestrr:
-    image: darkalfx/requestrr
-    hostname: requestrr
+    image: thomst08/requestrr
     container_name: requestrr
     ports:
     - 4545:4545
